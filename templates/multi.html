@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <title>Predict Location</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins';
+        }
+
+        .animated-bg {
+            background: linear-gradient(180deg, #60A5FA, #023E8A);
+            /* background: linear-gradient(180deg, #CAF0F8, #60A5FA, #396294, #023E8A); */
+            /* background-size: 400% 400%; */
+            /* animation: gradientAnimation 12s ease infinite; */
+        }
+
+        /* Keyframes for Gradient Animation */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 50% 100%;
+                /* Start from bottom */
+            }
+
+            50% {
+                background-position: 50% 0%;
+                /* Move to top */
+            }
+
+            100% {
+                background-position: 50% 100%;
+                /* Return to bottom */
+            }
+        }
+    </style>
+</head>
+
+<body class="w-screen h-screen flex justify-center animated-bg items-center overflow-hidden">
+    {% include 'Sidebar.html' %}
+    <div
+        class="container mx-auto w-3/4 rounded-lg bg-white justify-center text-center shadow-2xl animate__animated animate__fadeIn">
+
+        <!-- Header section -->
+        <div class="p-5 flex items-center border-b-2 text-center rounded-t-lg">
+            <span
+                class="hover:scale-125 duration-100 h-[18px] w-[18px] mr-1 inline-block bg-red-500 rounded-full"></span>
+            <span
+                class="hover:scale-125 duration-100 h-[18px] w-[18px] mr-1 inline-block bg-yellow-500 rounded-full"></span>
+            <span class="hover:scale-125 duration-100 h-[18px] w-[18px] inline-block bg-green-600 rounded-full"></span>
+            <div class="ml-auto border-2 p-1"></div>
+        </div>
+
+        <!-- Title and description -->
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold pt-5">PREDICT LOCATION</h1>
+        <p
+            class="font-extralight text-[10px] sm:text-xl text-gray-500 tracking-[.1em] lg:tracking-[.2em] mb-5 lg:mb-10">
+            Melakukan prediksi secara Banyak
+        </p>
+        <form action="{{ url_for('multipred') }}" method="post" enctype="multipart/form-data">
+            <!-- Form section -->
+            <div class="mx-auto w-3/4 mb-10 h-72 text-right">
+
+
+                <!-- File Upload Button -->
+                <label for="upload"
+                    class="bg-green-500 text-[10px] md:text-sm font-medium rounded-xl mx-2 p-1 w-1/5 lg:w-2/12 text-center text-white hover:bg-green-600 duration-200 inline-block">
+                    Upload
+                </label>
+                <input type="file" id="upload" hidden name="upload" required
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+
+                <!-- Template Download Link -->
+                <a class="bg-cyan-500 text-[10px] md:text-sm font-medium rounded-xl p-1 w-1/5 lg:w-2/12 text-center text-white hover:bg-cyan-600 duration-200 inline-block"
+                    href="/static/file/Template_Welding.xlsx" download="1">
+                    Template
+                </a>
+
+                <!-- Table Display -->
+                <div class=" mx-auto w-full h-72 rounded-xl border-2 mt-2 overflow-y-auto text-right"
+                    style="box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);">
+                    <table class="text-[10px] md:text-sm w-full h-full mt-2 table-auto text-center">
+                        <thead class="border-b-2 border-black">
+                            <tr>
+                                <th>No</th>
+                                <th>Size</th>
+                                <th>Component 1</th>
+                                <th>Component 2</th>
+                                <th>Schedule</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="overflow-scroll min-w-full">
+                            <tr id="isi">
+                                <td colspan="5" class="text-center p-4">Tidak ada data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Submit Button -->
+
+            </div>
+            <button
+                class="rounded-full font-bold lg:text-xl text-[15px] mt-6 shadow-lg shadow-blue-500/50 bg-blue-500 mx-auto py-1 mb-10 lg:mb-20 w-1/3 lg:w-64 text-white hover:bg-blue-600 duration-200"
+                type="submit">
+                Predict
+            </button>
+        </form>
+    </div>
+</body>
+
+
+</html>
+<script>
+    window.onload = function () {
+            const sidebar = document.getElementById('multi')
+            // sidebar.setAttribute('class', 'bg-[#1DB2F7]')
+            sidebar.classList.remove("hover:bg-[#1DB2F7]");
+            sidebar.classList.remove("bg-[#B5DEF1]");
+            sidebar.classList.add("bg-[#1DB2F7]");
+            sidebar.classList.add("scale-110");
+            sidebar.classList.add("my-3");
+            document.getElementById("down").click();
+        }
+
+
+    const uploadInput = document.getElementById('upload');
+    const tableBody = document.getElementById('tableBody');
+
+    uploadInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                // Kosongkan tabel sebelum menambahkan data baru
+                tableBody.innerHTML = "";
+
+                // Loop melalui setiap baris data JSON
+                jsonData.forEach((row, index) => {
+                    if (index === 0) return; // Lewati header
+
+                    const tableRow = document.createElement("tr");
+                    tableRow.innerHTML = `
+                            <td class="border border-gray-300 p-2">${index}</td>
+                            <td class="border border-gray-300 p-2">${row[0] || ''}</td>
+                            <td class="border border-gray-300 p-2">${row[1] || ''}</td>
+                            <td class="border border-gray-300 p-2">${row[2] || ''}</td>
+                            <td class="border border-gray-300 p-2">${row[3] || ''}</td>
+                        `;
+                    tableBody.appendChild(tableRow);
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert("Tidak ada file yang diunggah.");
+        }
+    });
+</script>
